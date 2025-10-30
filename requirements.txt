@@ -1,0 +1,5 @@
+requests
+pyrogram
+pymystem3
+gensim
+nltk
