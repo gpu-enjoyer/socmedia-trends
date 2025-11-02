@@ -64,25 +64,30 @@ import tkinter as tk
 
 
 #
-# Отвечает за сбор 
-#  текстовых данных vk и tg
+# Отвечает за сбор текстов постов tg + vk
 #
 class DataParser:
 
-    #
-    # tg_chat_names:     list[ каналы tg ], заполняется в ProgramInterface
-    # vk_chat_ids:       list[ каналы vk ], заполняется в ProgramInterface
-    # russian_stopwords:  set[ стоп-слов ]
-    #
     def __init__(self):
-        self.tg_chat_names     = []
-        self.vk_chat_ids       = []
+
+        self.tg_chat_names     = []    # заполняется в ProgramInterface
+        self.vk_chat_ids       = []    # заполняется в ProgramInterface
+        self.tokens            = {}
+        self.russian_stopwords = set()
+
+        try:
+            tokens_path = "input/tokens.json"
+            with open(tokens_path) as t:
+                self.tokens = json.load(t)
+        except FileNotFoundError:
+            print(f"ERROR: {tokens_path} not found")
+        except json.JSONDecodeError:
+            print(f"ERROR: {tokens_path} json decode error")
+
         self.russian_stopwords = set(stopwords.words("russian"))
-        with open("input/tokens.json") as t:
-            self.tokens = json.load(t)
 
     ##########################################   tg task  #########################################
-    async def async_telegram_task(self):
+    async def async_tg_task(self):
 
         api_id    = self.tokens["tg"]["api_id"]
         api_hash  = self.tokens["tg"]["api_hash"]
@@ -100,11 +105,16 @@ class DataParser:
                     result.append(msg.caption or msg.text or '')
         return result
 
-    ##########################################     tg     #########################################
+    ##########################################   tg       #########################################
     def telegram(self):
-        return asyncio.run(self.async_telegram_task())
+        return asyncio.run(self.async_tg_task())
 
-    ##########################################     vk     #########################################
+    # TODO
+    ##########################################   vk task  #########################################
+    # async def async_vk_task(self):
+    #   ...
+
+    ##########################################   vk       #########################################
     def vk(self):
 
         api       = self.tokens["vk"]["api"]
@@ -258,9 +268,15 @@ class ProgramInterface(tk.Tk):
         try:
             with open(tg_path, "r", encoding="utf-8") as tg_file:
                 tg_lines = tg_file.readlines()
-            #####################
+
+        ##############################
+        ###                        ###
             data_parser.tg_chat_names = [f"@{line.strip()}" for line in tg_lines if line.strip()]
-            #####################
+        ###                        ###
+        ###      list: @name       ###
+        ###                        ###
+        ##############################
+
         except FileNotFoundError:
             self.status_label.config(text=self.status_label["text"] + f"\nFile not found: {tg_path}")
         except Exception as e:
@@ -271,9 +287,15 @@ class ProgramInterface(tk.Tk):
         try:
             with open(vk_path, "r", encoding="utf-8") as vk_file:
                 vk_lines = vk_file.readlines()
-            #####################
+
+        ##############################
+        ###                        ###
             data_parser.vk_chat_ids = [f"-{line.strip()}" for line in vk_lines if line.strip()]
-            #####################
+        ###                        ###
+        ###    list: -1234567      ###
+        ###                        ###
+        ##############################
+
         except FileNotFoundError:
             self.status_label.config(text=self.status_label["text"] + f"\nFile not found: {vk_path}")
         except Exception as e:

@@ -1,5 +1,26 @@
 
-# Social Media Trends Analyze
+# Social Media Trend Analysis
+
+
+## Roadmap
+
+- [ ] `DataParser.async_vk_task()`
+- [ ] ~~`LDA_model`~~ `frequency = {}`
+- [ ] GUI: input `topics_num`
+- [ ] GUI: input `parsing_depth`
+- [ ] GUI: output `frequency`
+
+
+## Supported OSs
+
+```
+Linux
+```
+
+
+## GUI demo
+
+<img src="gui_demo.png" width="80%">
 
 
 ## Get Telegram tokens
@@ -37,8 +58,9 @@ Create `tg.txt` with the names of Telegram channels
 in the following format:
 
 ```
-name_1
-name_2
+habr_com
+vcnews
+d_code
 ...
 ```
 
@@ -49,8 +71,9 @@ Create `vk.txt` with the ids of VK groups
 in the following format:
 
 ```
-id_1
-id_2
+59518047
+50260527
+31131060
 ...
 ```
 
