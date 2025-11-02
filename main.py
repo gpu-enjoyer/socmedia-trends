@@ -197,10 +197,14 @@ class ProgramInterface(tk.Tk):
         self.create_widgets()  # запустить создание виджетов
 
     #
-    def create_widgets(self):
+    def create_widgets(self):  # !!! !!! !!!
+
         # главный заголовок
         self.main_label = tk.Label(self, text="Soc-Media Trends", font=("Helvetica", 16))
         self.main_label.pack(pady=20)
+
+        # поле для ввода
+        #  TODO
 
         # кнопка
         self.process_button = tk.Button(self, text="Okay lets go", command=self.parsing)
@@ -214,7 +218,10 @@ class ProgramInterface(tk.Tk):
     # -> None (метод обратного вызова для кнопки)
     #
     def parsing(self):
-        self.result_label.config(text="Processing.. ")  # обновить статус в UI
+        self.result_label.config(text="Processing ..")  # обновить статус в UI
+
+        # получить группы vk + tg из полей ввода
+        #  TODO
 
         # параллельно спарсить vk + tg
         with ThreadPoolExecutor() as executor:
@@ -227,10 +234,10 @@ class ProgramInterface(tk.Tk):
             processed_data_parallel_tg = list(executor.map(self.text_processor.get_words, tg_result.result()))
 
         # получить темы vk
-        vk_results = self.topic_modeler.getWeights(processed_data_parallel_vk)
+        vk_results = self.topic_modeler.getWeights(processed_data_parallel_vk)  # !!! !!! !!!
 
         # получить темы tg
-        tg_results = self.topic_modeler.getWeights(processed_data_parallel_tg)
+        tg_results = self.topic_modeler.getWeights(processed_data_parallel_tg)  # !!! !!! !!!
 
         # форматирование тем для вывода в GUI
         result_text = ''
