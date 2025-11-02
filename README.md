@@ -2,16 +2,10 @@
 # Social Media Trends Analyze
 
 
-## GUI demo
+## Get Telegram token & id
 
-![GUI](./gui-demo.png)
-
-
-## Todo
-
-```
-- Add parameter fields for GUI
-- Hide tokens before git add
+```bash
+https://my.telegram.org/apps
 ```
 
 
@@ -20,34 +14,28 @@
 ```bash
 https://dev.vk.com/ru/mini-apps/management/creating-new-apps
 
-# Select 'standalone-app'
-# Select 'web'
+# select 'standalone-app'
+# select 'web'
 # 'base domen':  localhost
 # 'redirect URL: http://localhost
-
-# token -> 'main.py' { def vk(self): api = ... }
-```
-
-## Select VK channels
-
-```
-Edit: vk.txt
 ```
 
 
-## Get Telegram token & id
+## Set tokens
 
 ```bash
-https://my.telegram.org/apps
+cd input
+mv tokens_template.json tokens.json
 
-# api_id   -> 'main.py' { def vk(self): api = ... }
-# api_hash -> 'main.py' { def vk(self): api = ... }
+# Edit: tokens.json
 ```
 
-## Select Telegram channels
 
-```
-Edit: tg.txt
+## Select channels
+
+```bash
+# Edit: input/tg.txt
+# Edit: input/vk.txt
 ```
 
 
@@ -56,6 +44,4 @@ Edit: tg.txt
 ```bash
 ./install.sh  # do it once
 ./run.sh
-
-# check output/
 ```

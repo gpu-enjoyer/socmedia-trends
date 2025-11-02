@@ -48,6 +48,7 @@ import tkinter as tk
 #   создание GUI
 #
 
+import json
 
 #
 # Отвечает за сбор текстовых данных vk и telegram. 
@@ -60,20 +61,23 @@ class DataParser:
     def __init__(self):
         self.russian_stopwords = set(stopwords.words("russian"))
 
+    with open("input/tokens.json") as t:
+        tokens = json.load(t)
 
-    ##########################################  telegram  #########################################
+    ##########################################   tg task  #########################################
     async def async_telegram_task(self):
-        api_id = '...'
-        api_hash = '...'
-        channels = []
-        result = []
 
-        with open('tg.txt') as file:
+        api_id    = self.tokens["tg"]["api_id"]     # !!! !!! !!!
+        api_hash  = self.tokens["tg"]["api_hash"]   # !!! !!! !!!
+        channels  = []
+        result    = []
+
+        with open('input/tg.txt') as file:
             # += ID канала:
             channels.append(file.readline().strip())
 
         # 'async with' для асинхронного клиента:
-        async with Client('output/tg', api_id, api_hash) as client: #########
+        async with Client('output/tg', api_id, api_hash) as client:  # !!! !!! !!!
             for cid in channels:
                 # 'await' для получения чата:
                 chat = await client.get_chat(cid)
@@ -84,20 +88,21 @@ class DataParser:
                     result.append(msg.caption or msg.text or '')
         return result
 
-    ##########################################  telegram  #########################################
+    ##########################################     tg     #########################################
     def telegram(self):
         # создать и запустить цикл событий:
         return asyncio.run(self.async_telegram_task())
 
     ##########################################     vk     #########################################
     def vk(self):
-        api = '...'
-        version = '5.131'
-        amount = 1000        ################
-        channels = []
-        result = []
+
+        api       = self.tokens["vk"]["api"]  # !!! !!! !!!
+        version   = '5.131'
+        amount    = 100                  # !!! !!! !!!
+        channels  = []
+        result    = []
         
-        with open('vk.txt') as file:
+        with open('input/vk.txt') as file:                     # !!! !!! !!!
             # прочитать ID из файла
             channels.append(file.readline().strip())
 
@@ -143,7 +148,6 @@ class TextProcessor:
             filtered = [w for w in words if w.strip() and w != " " and w not in self.russian_stopwords]
             # собрать в строку
             return " ".join(filtered)
-
         finally:
             # выполнить, независимо от возможных ошибок в try
             del mystem
@@ -154,7 +158,7 @@ class TextProcessor:
 #  Принимает:  список обработанных текстов.
 #  Возвращает: выделенные темы.
 #
-class TopicModeler:
+class TopicModeler:   # !!! !!! !!!
 
     #
     # lines: list[str], список обработанных текстов
