@@ -1,7 +1,7 @@
 #! /bin/bash
 
-rm -f output/tg_results.txt
-rm -f output/vk_results.txt
+rm -f output/tg.txt
+rm -f output/vk.txt
 
 [[ ! -d output ]] && mkdir output
 

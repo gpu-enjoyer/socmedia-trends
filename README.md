@@ -31,6 +31,30 @@ mv tokens_template.json tokens.json
 ```
 
 
+## Select Telegram channels
+
+Create `tg.txt` with the names of Telegram channels  
+in the following format:
+
+```
+name_1
+name_2
+...
+```
+
+
+## Select VK groups
+
+Create `vk.txt` with the ids of VK groups  
+in the following format:
+
+```
+id_1
+id_2
+...
+```
+
+
 ## Run
 
 ```bash
@@ -38,8 +62,8 @@ mv tokens_template.json tokens.json
 
 ./run.sh
 
-# Input tg channels
-# Input vk groups
+# Input: path to 'tg.txt'
+# Input: path to 'vk.txt'
 
 # Okay lets go ..
 ```

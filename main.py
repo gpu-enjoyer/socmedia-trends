@@ -40,9 +40,9 @@ from pymystem3 import Mystem
 
 import gensim
 #
+# TODO:
 # LdaModel (из gensim.models):
 #   создание и обучения тематической модели LDA
-#   ("латентное распределение Дирихле")
 #
 
 from gensim import corpora
@@ -64,71 +64,68 @@ import tkinter as tk
 
 
 #
-# Отвечает за сбор текстовых данных vk и telegram. 
-#  Инициализирует Mystem (приведение слов к начальной форме)
-#   и стоп-слова для передачи в TextProcessor.
+# Отвечает за сбор 
+#  текстовых данных vk и tg
 #
 class DataParser:
 
-    # russian_stopwords: set, набор стоп-слов
+    #
+    # tg_chat_names:     list[ каналы tg ], заполняется в ProgramInterface
+    # vk_chat_ids:       list[ каналы vk ], заполняется в ProgramInterface
+    # russian_stopwords:  set[ стоп-слов ]
+    #
     def __init__(self):
+        self.tg_chat_names     = []
+        self.vk_chat_ids       = []
         self.russian_stopwords = set(stopwords.words("russian"))
-
-    with open("input/tokens.json") as t:
-        tokens = json.load(t)
+        with open("input/tokens.json") as t:
+            self.tokens = json.load(t)
 
     ##########################################   tg task  #########################################
     async def async_telegram_task(self):
 
-        api_id    = self.tokens["tg"]["api_id"]     # !!! !!! !!!
-        api_hash  = self.tokens["tg"]["api_hash"]   # !!! !!! !!!
-        channels  = []
+        api_id    = self.tokens["tg"]["api_id"]
+        api_hash  = self.tokens["tg"]["api_hash"]
         result    = []
 
-        with open('input/tg.txt') as file:
-            # += ID канала:
-            channels.append(file.readline().strip())
-
-        # 'async with' для асинхронного клиента:
-        async with Client('output/tg', api_id, api_hash) as client:  # !!! !!! !!!
-            for cid in channels:
-                # 'await' для получения чата:
-                chat = await client.get_chat(cid)
-                
-                # 'async for' для асинхронного генератора:
+        # TODO: возможная проблема:
+        #  доступ раньше, чем ProgramInterface заполнит
+        #   self.tg_chat_names и self.vk_chat_ids
+        #
+        async with Client('output/tg', api_id, api_hash) as client:
+            for cid in self.tg_chat_names:
+                chat = await client.get_chat(cid)  ## await
+                # TODO: GUI:
                 async for msg in client.get_chat_history(chat.id, limit=1000):
-                    # += текст поста или += ничего (если всё):
                     result.append(msg.caption or msg.text or '')
         return result
 
     ##########################################     tg     #########################################
     def telegram(self):
-        # создать и запустить цикл событий:
         return asyncio.run(self.async_telegram_task())
 
     ##########################################     vk     #########################################
     def vk(self):
 
-        api       = self.tokens["vk"]["api"]  # !!! !!! !!!
+        api       = self.tokens["vk"]["api"]
         version   = '5.131'
-        amount    = 100                  # !!! !!! !!!
-        channels  = []
+        amount    = 100  # TODO: GUI
         result    = []
-        
-        with open('input/vk.txt') as file:                     # !!! !!! !!!
-            # прочитать ID из файла
-            channels.append(file.readline().strip())
 
-        for id in channels:
-            # GET-запрос для vk:
+        # TODO: async task for vk
+        # TODO: возможная проблема:
+        #  доступ раньше, чем ProgramInterface заполнит self.tg_chat_names, self.vk_chat_ids
+        #
+        for cid in self.vk_chat_ids:
             response = requests.get(
                 'https://api.vk.com/method/wall.get',
-                params={'access_token': api, 'v': version, 'owner_id': int(id), 'count': amount}
+                params={
+                    'access_token': api,
+                    'v': version,
+                    'owner_id': int(cid),  ## int (?!) там строки с минусом в начале
+                    'count': amount}
             ).json()
-
-            # проходим по каждому посту:
             for item in response['response']['items']:
-                # взять значение поля text, иначе - пустая строка
                 result.append(item.get('text', ''))
 
         return result
@@ -192,8 +189,8 @@ class TopicModeler:
 
 #
 # Класс графического интерфейса.
-#  Содержит виджеты (кнопки, метки) и
-#   обрабатывает нажатия кнопок.
+#  Содержит: tk.Label, tk.Entry, tk.Button.
+#   Обрабатывает: нажатие КНОПКИ.
 #
 class ProgramInterface(tk.Tk):
 
@@ -223,19 +220,19 @@ class ProgramInterface(tk.Tk):
         # отступ
         tk.Label(self, text="").pack(pady=10)
 
-        # label: tg
+        # label: path to TG
         self.tg_label = tk.Label(self, text="Path to tg.txt")
         self.tg_label.pack(pady=5)
 
-        # entry: tg
+        # path to TG
         self.tg_entry = tk.Entry(self, width=100)
         self.tg_entry.pack(pady=5)
         
-        # label: vk 
+        # label: path to VK
         self.vk_label = tk.Label(self, text="Path to vk.txt")
         self.vk_label.pack(pady=5)
 
-        # entry: vk
+        # path to VK
         self.vk_entry = tk.Entry(self, width=100)
         self.vk_entry.pack(pady=5)
 
@@ -244,8 +241,8 @@ class ProgramInterface(tk.Tk):
         self.process_button.pack(pady=10)
 
         # метка для вывода результатов
-        self.result_label = tk.Label(self, text="")
-        self.result_label.pack(pady=10)
+        self.status_label = tk.Label(self, text="Ready to run ..")
+        self.status_label.pack(pady=10)
 
     #
     # метод обратного вызова 
@@ -253,25 +250,39 @@ class ProgramInterface(tk.Tk):
     #
     def parsing(self):
 
-        # отобразить статус работы
-        self.result_label.config(text="Processing ..")
-        # TODO self.result_label.pack() ?
+        # TODO отобразить статус работы
+        self.status_label.config(text="Processing ..")
 
-        # получить и обработать ввод для tg
-        tg_input = self.tg_entry.get().strip()
-        if tg_input:
-            tg_names = tg_input.split()
-            with open('input/tg.txt', 'w') as tg_file:
-                for name in tg_names:
-                    tg_file.write(f'@{name}\n')
-        
-        # получить и обработать ввод для vk
-        vk_input = self.vk_entry.get().strip()
-        if vk_input:
-            vk_ids = vk_input.split()
-            with open('input/vk.txt', 'w') as vk_file:
-                for id in vk_ids:
-                    vk_file.write(f'-{id}\n')
+        # получить чаты TG
+        tg_path = self.tg_entry.get()
+        try:
+            with open(tg_path, "r", encoding="utf-8") as tg_file:
+                tg_lines = tg_file.readlines()
+            #####################
+            data_parser.tg_chat_names = [f"@{line.strip()}" for line in tg_lines if line.strip()]
+            #####################
+        except FileNotFoundError:
+            self.status_label.config(text=self.status_label["text"] + f"\nFile not found: {tg_path}")
+        except Exception as e:
+            self.status_label.config(text=self.status_label["text"] + f"Error: {e}")
+
+        # получить чаты VK
+        vk_path = self.vk_entry.get()
+        try:
+            with open(vk_path, "r", encoding="utf-8") as vk_file:
+                vk_lines = vk_file.readlines()
+            #####################
+            data_parser.vk_chat_ids = [f"-{line.strip()}" for line in vk_lines if line.strip()]
+            #####################
+        except FileNotFoundError:
+            self.status_label.config(text=self.status_label["text"] + f"\nFile not found: {vk_path}")
+        except Exception as e:
+            self.status_label.config(text=self.status_label["text"] + f"Error: {e}")
+
+        #####################
+        self.update_idletasks()
+        # self.update()
+
 
         # параллельно спарсить vk + tg
         with ThreadPoolExecutor() as executor:
@@ -283,45 +294,48 @@ class ProgramInterface(tk.Tk):
             processed_data_parallel_vk = list(executor.map(self.text_processor.get_words, vk_result.result()))
             processed_data_parallel_tg = list(executor.map(self.text_processor.get_words, tg_result.result()))
 
-        # получить темы vk
-        vk_results = self.topic_modeler.getWeights(processed_data_parallel_vk)
+        # TODO частотность тем: vk
+        vk_result = self.topic_modeler.getWeights(processed_data_parallel_vk)
 
-        # получить темы tg
-        tg_results = self.topic_modeler.getWeights(processed_data_parallel_tg)
+        # TODO частотность тем: tg
+        tg_result = self.topic_modeler.getWeights(processed_data_parallel_tg)
 
-        # форматирование тем для вывода в GUI
-        result_text = ""
-        result_text += f"VK themes:\n"
-        for topic in vk_results:
-            result_text += f'{topic}\n'
-        result_text += f"\n\nTelegram themes:\n"
-        for topic in tg_results:
-            result_text += f'{topic}\n'
 
-        # записать в файл темы vk 
-        with open('output/vk_results.txt', 'a') as topics_vk:
-            for topic in vk_results:
-                topics_vk.write(str(topic) + '\n')
+        # вывод тем tg
+        tg_result_text = ""
+        for topic in tg_result:
+            tg_result_text += f'{topic}\n'
+        #
+        # TODO вывод в поле GUI
+        #
+        # -> output/tg.txt
+        with open("output/tg.txt", "w") as tg_output:
+            tg_output.write(tg_result_text)
 
-        # записать в файл темы tg
-        with open('output/tg_results.txt', 'a') as topics_tg:
-            for topic in tg_results:
-                topics_tg.write(str(topic) + '\n')
+        # вывод тем vk
+        vk_result_text = ""
+        for topic in vk_result:
+            vk_result_text += f'{topic}\n'
+        #
+        # TODO вывод в поле GUI
+        #
+        # -> output/vk.txt
+        with open("output/vk.txt", "w") as vk_output:
+            vk_output.write(vk_result_text)
 
-        # отобразить статус выполнения
-        self.result_label.config(text=result_text)
+        # отобразить статус работы
+        self.status_label.config(text="Done")
 
 
 if __name__ == '__main__':
 
-    # инициализация класса DataParser
-    data_parser    = DataParser()
+    # Поля: tg_chat_names, vk_chat_ids
+    #  заполняются после нажатия кнопки в program_interface
+    data_parser = DataParser()
 
-    # инициализация класса TextProcessor
     text_processor = TextProcessor(data_parser.russian_stopwords)
 
-    # TODO инициализация класса TopicModeler
-    topic_modeler  = TopicModeler()
+    topic_modeler = TopicModeler()
 
     program_interface = ProgramInterface(data_parser, text_processor, topic_modeler)
     program_interface.mainloop()
