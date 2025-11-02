@@ -1,6 +1,6 @@
 
 {
-    "comment":" ## RENAME THIS FILE TO: tokens.json ",
+    "__readme":" ## RENAME THIS FILE TO: tokens.json ",
 
     "tg": {
         "api_id":123,

@@ -167,11 +167,12 @@ class TextProcessor:
 
 
 #
+# TODO
 # Тематическое моделирование (LDA).
 #  Принимает:  список обработанных текстов.
 #  Возвращает: выделенные темы.
 #
-class TopicModeler:   # !!! !!! !!!
+class TopicModeler:
 
     #
     # lines: list[str], список обработанных текстов
@@ -197,36 +198,45 @@ class TopicModeler:   # !!! !!! !!!
 class ProgramInterface(tk.Tk):
 
     #
+    # инициализация GUI
+    #
     def __init__(self, data_parser, text_processor, topic_modeler):
-        super().__init__()  # инициализировать родительский класс (tk.Tk)
+
+        # инициализировать родительский класс (tk.Tk)
+        super().__init__()
 
         self.title("Social-Media Trends")     # заголовок окна
-        self.geometry("500x300")              # размер окна
+        self.geometry("900x600")              # размер окна
 
-        self.data_parser = data_parser        # экземпляр DataParser
+        self.data_parser    = data_parser     # экземпляр DataParser
         self.text_processor = text_processor  # экземпляр TextProcessor
-        self.topic_modeler = topic_modeler    # экземпляр TopicModeler
+        self.topic_modeler  = topic_modeler   # экземпляр TopicModeler
 
         # запустить создание виджетов
         self.create_widgets()
 
     #
+    # элементы GUI
+    #
     def create_widgets(self):
 
-        # главный заголовок
-        # self.main_label = tk.Label(self, text="Soc-Media Trends", font=("Helvetica", 16))
-        # self.main_label.pack(pady=20)
+        # отступ
+        tk.Label(self, text="").pack(pady=10)
 
-        # label + entry для каналов tg
-        self.tg_label = tk.Label(self, text="Telegram channels: ")
+        # label: tg
+        self.tg_label = tk.Label(self, text="Path to tg.txt")
         self.tg_label.pack(pady=5)
-        self.tg_entry = tk.Entry(self, width=50)
+
+        # entry: tg
+        self.tg_entry = tk.Entry(self, width=100)
         self.tg_entry.pack(pady=5)
         
-        # label + entry для сообществ vk 
-        self.vk_label = tk.Label(self, text="VK community IDs: ")
+        # label: vk 
+        self.vk_label = tk.Label(self, text="Path to vk.txt")
         self.vk_label.pack(pady=5)
-        self.vk_entry = tk.Entry(self, width=50)
+
+        # entry: vk
+        self.vk_entry = tk.Entry(self, width=100)
         self.vk_entry.pack(pady=5)
 
         # КНОПКА
@@ -238,12 +248,14 @@ class ProgramInterface(tk.Tk):
         self.result_label.pack(pady=10)
 
     #
-    # метод обратного вызова для КНОПКИ
+    # метод обратного вызова 
+    #  для КНОПКИ
     #
     def parsing(self):
 
-        # обновить статус в UI
+        # отобразить статус работы
         self.result_label.config(text="Processing ..")
+        # TODO self.result_label.pack() ?
 
         # получить и обработать ввод для tg
         tg_input = self.tg_entry.get().strip()
@@ -272,17 +284,17 @@ class ProgramInterface(tk.Tk):
             processed_data_parallel_tg = list(executor.map(self.text_processor.get_words, tg_result.result()))
 
         # получить темы vk
-        vk_results = self.topic_modeler.getWeights(processed_data_parallel_vk)  # !!! !!! !!!
+        vk_results = self.topic_modeler.getWeights(processed_data_parallel_vk)
 
         # получить темы tg
-        tg_results = self.topic_modeler.getWeights(processed_data_parallel_tg)  # !!! !!! !!!
+        tg_results = self.topic_modeler.getWeights(processed_data_parallel_tg)
 
         # форматирование тем для вывода в GUI
-        result_text = ''
-        result_text += f'VK themes:\n'
+        result_text = ""
+        result_text += f"VK themes:\n"
         for topic in vk_results:
             result_text += f'{topic}\n'
-        result_text += f'\n\nTelegram themes:\n'
+        result_text += f"\n\nTelegram themes:\n"
         for topic in tg_results:
             result_text += f'{topic}\n'
 
@@ -301,8 +313,15 @@ class ProgramInterface(tk.Tk):
 
 
 if __name__ == '__main__':
-    data_parser = DataParser()
+
+    # инициализация класса DataParser
+    data_parser    = DataParser()
+
+    # инициализация класса TextProcessor
     text_processor = TextProcessor(data_parser.russian_stopwords)
-    topic_modeler = TopicModeler()
+
+    # TODO инициализация класса TopicModeler
+    topic_modeler  = TopicModeler()
+
     program_interface = ProgramInterface(data_parser, text_processor, topic_modeler)
     program_interface.mainloop()
