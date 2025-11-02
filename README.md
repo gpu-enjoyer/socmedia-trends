@@ -2,20 +2,20 @@
 # Social Media Trends Analyze
 
 
-## Get Telegram token & id
+## Get Telegram tokens
 
 ```bash
 https://my.telegram.org/apps
 ```
 
 
-## Get VK token & id
+## Get VK tokens
 
 ```bash
 https://dev.vk.com/ru/mini-apps/management/creating-new-apps
 
-# select 'standalone-app'
-# select 'web'
+# Select 'standalone-app'
+# Select 'web'
 # 'base domen':  localhost
 # 'redirect URL: http://localhost
 ```
@@ -31,17 +31,15 @@ mv tokens_template.json tokens.json
 ```
 
 
-## Select channels
-
-```bash
-# Edit: input/tg.txt
-# Edit: input/vk.txt
-```
-
-
 ## Run
 
 ```bash
-./install.sh  # do it once
+./install.sh  # Do it once
+
 ./run.sh
+
+# Input tg channels
+# Input vk groups
+
+# Okay lets go ..
 ```

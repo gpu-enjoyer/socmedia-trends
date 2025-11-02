@@ -1,23 +1,28 @@
+
 import requests
 #
 # get (из requests):
-#   выполнения GET-запросов (загрузка данных VK)
+#   выполнения GET-запросов (загрузка данных vk)
 #
+
 import asyncio
 #
 # call processes async 
 #
+
 from pyrogram import Client
 #
 # Client:
 #   для взаимодействия с telegram API
 #    (аутентификация, истории чатов)
 #
+
 from concurrent.futures import ThreadPoolExecutor
 #
 # ThreadPoolExecutor:
 #   параллельное выполнение парсинга и обработки
 #
+
 from nltk.corpus import stopwords
 # nltk.download('stopwords')
 #
@@ -26,29 +31,37 @@ from nltk.corpus import stopwords
 # stopwords:
 #   список стоп-слов
 #
+
 from pymystem3 import Mystem
 #
 # Mystem:
 #   приведение слов к начальной форме
 #
+
 import gensim
 #
 # LdaModel (из gensim.models):
 #   создание и обучения тематической модели LDA
 #   ("латентное распределение Дирихле")
 #
+
 from gensim import corpora
 #
 # corpora (из gensim):
 #   словарь (Dictionary) + корпус для LdaModel
 #
+
+import json
+#
+# получение токенов из input/tokens.json
+#
+
 import tkinter as tk
 #
 # tk (модуль tkinter):
 #   создание GUI
 #
 
-import json
 
 #
 # Отвечает за сбор текстовых данных vk и telegram. 
@@ -187,26 +200,36 @@ class ProgramInterface(tk.Tk):
     def __init__(self, data_parser, text_processor, topic_modeler):
         super().__init__()  # инициализировать родительский класс (tk.Tk)
 
-        self.title("Soc-Media Trends")  # заголовок окна
-        self.geometry("500x300")           # размер окна
+        self.title("Social-Media Trends")     # заголовок окна
+        self.geometry("500x300")              # размер окна
 
         self.data_parser = data_parser        # экземпляр DataParser
         self.text_processor = text_processor  # экземпляр TextProcessor
         self.topic_modeler = topic_modeler    # экземпляр TopicModeler
 
-        self.create_widgets()  # запустить создание виджетов
+        # запустить создание виджетов
+        self.create_widgets()
 
     #
-    def create_widgets(self):  # !!! !!! !!!
+    def create_widgets(self):
 
         # главный заголовок
-        self.main_label = tk.Label(self, text="Soc-Media Trends", font=("Helvetica", 16))
-        self.main_label.pack(pady=20)
+        # self.main_label = tk.Label(self, text="Soc-Media Trends", font=("Helvetica", 16))
+        # self.main_label.pack(pady=20)
 
-        # поле для ввода
-        #  TODO
+        # label + entry для каналов tg
+        self.tg_label = tk.Label(self, text="Telegram channels: ")
+        self.tg_label.pack(pady=5)
+        self.tg_entry = tk.Entry(self, width=50)
+        self.tg_entry.pack(pady=5)
+        
+        # label + entry для сообществ vk 
+        self.vk_label = tk.Label(self, text="VK community IDs: ")
+        self.vk_label.pack(pady=5)
+        self.vk_entry = tk.Entry(self, width=50)
+        self.vk_entry.pack(pady=5)
 
-        # кнопка
+        # КНОПКА
         self.process_button = tk.Button(self, text="Okay lets go", command=self.parsing)
         self.process_button.pack(pady=10)
 
@@ -215,13 +238,28 @@ class ProgramInterface(tk.Tk):
         self.result_label.pack(pady=10)
 
     #
-    # -> None (метод обратного вызова для кнопки)
+    # метод обратного вызова для КНОПКИ
     #
     def parsing(self):
-        self.result_label.config(text="Processing ..")  # обновить статус в UI
 
-        # получить группы vk + tg из полей ввода
-        #  TODO
+        # обновить статус в UI
+        self.result_label.config(text="Processing ..")
+
+        # получить и обработать ввод для tg
+        tg_input = self.tg_entry.get().strip()
+        if tg_input:
+            tg_names = tg_input.split()
+            with open('input/tg.txt', 'w') as tg_file:
+                for name in tg_names:
+                    tg_file.write(f'@{name}\n')
+        
+        # получить и обработать ввод для vk
+        vk_input = self.vk_entry.get().strip()
+        if vk_input:
+            vk_ids = vk_input.split()
+            with open('input/vk.txt', 'w') as vk_file:
+                for id in vk_ids:
+                    vk_file.write(f'-{id}\n')
 
         # параллельно спарсить vk + tg
         with ThreadPoolExecutor() as executor:
