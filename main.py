@@ -1,80 +1,83 @@
 
 import requests
 #
-# get (из requests):
-#   выполнения GET-запросов (загрузка данных vk)
+# requests.get():
+#  выполнения GET-запросов vk
+#
+# TODO
+#  единый стандарт параллельности (*)
 #
 
 import asyncio
 #
-# call processes async 
+# get async func result 
 #
 
 from pyrogram import Client
 #
 # Client:
-#   для взаимодействия с telegram API
-#    (аутентификация, истории чатов)
+#  для взаимодействия с Telegram API
+#   (аутентификация, истории чатов)
 #
 
 from concurrent.futures import ThreadPoolExecutor
 #
 # ThreadPoolExecutor:
-#   параллельное выполнение парсинга и обработки
+#  параллельное выполнение парсинга и обработки
 #
 
 from nltk.corpus import stopwords
-# nltk.download('stopwords')
 #
 # "Natural Language Toolkit"
-#
-# stopwords:
-#   список стоп-слов
+#  stopwords: список стоп-слов
 #
 
 from pymystem3 import Mystem
 #
 # Mystem:
-#   приведение слов к начальной форме
+#  приведение слов к начальной форме
 #
 
 import gensim
 #
-# TODO:
-# LdaModel (из gensim.models):
-#   создание и обучения тематической модели LDA
+# gensim.models.LdaModel
+#  создание и обучения тематической модели LDA
+#
+# TODO
+#  обычная frequency
 #
 
 from gensim import corpora
 #
-# corpora (из gensim):
-#   словарь (Dictionary) + корпус для LdaModel
+# gensim.corpora:
+#  ? словарь + корпус для LdaModel
 #
 
 import json
 #
-# получение токенов из input/tokens.json
+# получение токенов 
+#  из input/tokens.json
 #
 
 import tkinter as tk
 #
-# tk (модуль tkinter):
-#   создание GUI
+#  создание GUI
 #
 
 
 #
-# Отвечает за сбор текстов постов tg + vk
+# Отвечает за сбор текстов tg + vk
 #
 class DataParser:
 
+    #
     def __init__(self):
 
-        self.tg_chat_names     = []    # заполняется в ProgramInterface
-        self.vk_chat_ids       = []    # заполняется в ProgramInterface
-        self.tokens            = {}
-        self.russian_stopwords = set()
+        self.tg_chat_names  = []  # заполняется в ProgramInterface
+        self.vk_chat_ids    = []  # заполняется в ProgramInterface
+        self.tokens         = {}
 
+        # tokens
         try:
             tokens_path = "input/tokens.json"
             with open(tokens_path) as t:
@@ -84,47 +87,60 @@ class DataParser:
         except json.JSONDecodeError:
             print(f"ERROR: {tokens_path} json decode error")
 
-        self.russian_stopwords = set(stopwords.words("russian"))
 
-    ##########################################   tg task  #########################################
-    async def async_tg_task(self):
+    ##################################   tg task  ##################################
+    #
+    # TODO
+    #  единый стандарт параллельности (*)
+    #
+    async def async_tg_task(self, api_id, api_hash):
 
-        api_id    = self.tokens["tg"]["api_id"]
-        api_hash  = self.tokens["tg"]["api_hash"]
         result    = []
 
-        # TODO: возможная проблема:
+        #
+        # TODO: возможна проблема:
         #  доступ раньше, чем ProgramInterface заполнит
         #   self.tg_chat_names и self.vk_chat_ids
         #
+        # -> output/tg.session
+        #
         async with Client('output/tg', api_id, api_hash) as client:
             for cid in self.tg_chat_names:
-                chat = await client.get_chat(cid)  ## await
-                # TODO: GUI:
+                chat = await client.get_chat(cid)
                 async for msg in client.get_chat_history(chat.id, limit=1000):
                     result.append(msg.caption or msg.text or '')
         return result
 
-    ##########################################   tg       #########################################
-    def telegram(self):
-        return asyncio.run(self.async_tg_task())
+    ##################################   tg       ##################################
+    def tg(self):
+        api_id    = self.tokens["tg"]["api_id"]
+        api_hash  = self.tokens["tg"]["api_hash"]
+        return asyncio.run(self.async_tg_task(api_id, api_hash))
 
+    ##################################   vk task  ##################################
+    #
     # TODO
-    ##########################################   vk task  #########################################
-    # async def async_vk_task(self):
+    #  async def async_vk_task(self):
     #   ...
+    #
+    # TODO
+    #  единый стандарт параллельности (*)
+    #
 
-    ##########################################   vk       #########################################
+    ##################################   vk       ##################################
     def vk(self):
 
         api       = self.tokens["vk"]["api"]
         version   = '5.131'
-        amount    = 100  # TODO: GUI
+        amount    = 100  # TODO
         result    = []
 
-        # TODO: async task for vk
-        # TODO: возможная проблема:
-        #  доступ раньше, чем ProgramInterface заполнит self.tg_chat_names, self.vk_chat_ids
+        #
+        # TODO: async_vk_task
+        #
+        # TODO: возможна проблема:
+        #  доступ раньше, чем ProgramInterface заполнит
+        #   self.tg_chat_names, self.vk_chat_ids
         #
         for cid in self.vk_chat_ids:
             response = requests.get(
@@ -142,42 +158,81 @@ class DataParser:
 
 
 #
-# Отвечает за предварительную обработку текста.
-#  Выполняет лемматизацию и удаление стоп-слов.
+# Исходный текст 
+#  -> Леммы в нижнем регистре без стоп-слов
 #
 class TextProcessor:
 
     #
-    def __init__(self, russian_stopwords):
-        self.russian_stopwords = russian_stopwords
+    def __init__(self):
 
+        self.rus_stopwords = set()
+        self.mystem_path   = "/usr/local/bin/mystem"
+
+        # self.rus_stopwords
+        try:
+            self.rus_stopwords = set(stopwords.words("russian"))
+        except:
+            print("ERROR: stopwords init")
+
+        # check_mystem
+        try:
+            check_mystem = Mystem(self.mystem_path)
+            check_mystem.close()
+        except:
+            print("ERROR: Mystem init")
+
+    # TODO
+    #  инициализация глобальных объектов процессов
+    #   (используются повторно)
     #
-    # text : исходный текст (str)
-    #  -> обработанный текст, леммы без стоп-слов (str)
+    # def init_worker():
+    #     global mystem, rus_stopwords
+    #     mystem = Mystem("/usr/local/bin/mystem")
+    #     rus_stopwords = set(stopwords.words("russian"))
+    #
+    # ...
+
     #
     def get_words(self, text):
+
         if not text or not text.strip():
             return ""
+        
+        # Mystem непртокобезопасен:
+        #  новый внутри каждого треда
+        mystem = Mystem(self.mystem_path)
 
-        mystem = Mystem(mystem_bin="/usr/local/bin/mystem")
+        # лемматизировать текст в нижнем регистре
+        words = mystem.lemmatize(text.lower())
 
-        try:
-            # лемматизировать текст в нижнем регистре
-            words = mystem.lemmatize(text.lower())
-            # условие парсинга: убрать стоп-слова и пробелы:
-            filtered = [w for w in words if w.strip() and w != " " and w not in self.russian_stopwords]
-            # собрать в строку
-            return " ".join(filtered)
-        finally:
-            # выполнить, независимо от возможных ошибок в try
-            del mystem
+        # убрать стоп-слова и пробелы
+        filtered = [
+            w
+            for w in words
+                if w.strip()
+                    and w != " "
+                    and w not in self.rus_stopwords
+        ]
+
+        # закрываем Mystem в каждом треде
+        mystem.close()
+
+        #
+        # собрать в строку
+        #
+        # TODO
+        #  единый стандарт параллельности (*)
+        #
+        return " ".join(filtered)
 
 
 #
+# Тематическое моделирование (LDA):
+#  список обработанных текстов -> выделенные темы.
+#
 # TODO
-# Тематическое моделирование (LDA).
-#  Принимает:  список обработанных текстов.
-#  Возвращает: выделенные темы.
+#  обычная frequency
 #
 class TopicModeler:
 
@@ -246,9 +301,14 @@ class ProgramInterface(tk.Tk):
         self.vk_entry = tk.Entry(self, width=100)
         self.vk_entry.pack(pady=5)
 
-        # КНОПКА
-        self.process_button = tk.Button(self, text="Okay lets go", command=self.parsing)
-        self.process_button.pack(pady=10)
+        # TODO
+        #  кнопка инициализации:
+        #   забрать часть ответственности self.parsing
+        #    self.init_button = tk.Button(self, text="Prepare", command=self.prepare)
+
+        # КНОПКА запуска
+        self.run_button = tk.Button(self, text="Okay lets go", command=self.parsing)
+        self.run_button.pack(pady=10)
 
         # метка для вывода результатов
         self.status_label = tk.Label(self, text="Ready to run ..")
@@ -256,11 +316,11 @@ class ProgramInterface(tk.Tk):
 
     #
     # метод обратного вызова 
-    #  для КНОПКИ
+    #  для КНОПКИ запуска
     #
     def parsing(self):
 
-        # TODO отобразить статус работы
+        # отобразить статус работы
         self.status_label.config(text="Processing ..")
 
         # получить чаты TG
@@ -301,25 +361,35 @@ class ProgramInterface(tk.Tk):
         except Exception as e:
             self.status_label.config(text=self.status_label["text"] + f"Error: {e}")
 
-        #####################
+        # обновить GUI
         self.update_idletasks()
-        # self.update()
 
 
         # параллельно спарсить vk + tg
         with ThreadPoolExecutor() as executor:
             vk_result = executor.submit(self.data_parser.vk)
-            tg_result = executor.submit(self.data_parser.telegram)
+            tg_result = executor.submit(self.data_parser.tg)
 
+        #
         # параллельно обработать полученные тексты
+        #
+        # TODO
+        #  единый стандарт параллельности (*)
+        #
         with ThreadPoolExecutor() as executor:
             processed_data_parallel_vk = list(executor.map(self.text_processor.get_words, vk_result.result()))
             processed_data_parallel_tg = list(executor.map(self.text_processor.get_words, tg_result.result()))
 
-        # TODO частотность тем: vk
+        #
+        # TODO
+        #  frequency
+        #
         vk_result = self.topic_modeler.getWeights(processed_data_parallel_vk)
 
-        # TODO частотность тем: tg
+        #
+        # TODO
+        #  frequency
+        #
         tg_result = self.topic_modeler.getWeights(processed_data_parallel_tg)
 
 
@@ -328,7 +398,8 @@ class ProgramInterface(tk.Tk):
         for topic in tg_result:
             tg_result_text += f'{topic}\n'
         #
-        # TODO вывод в поле GUI
+        # TODO
+        #  вывод в поле GUI
         #
         # -> output/tg.txt
         with open("output/tg.txt", "w") as tg_output:
@@ -339,7 +410,8 @@ class ProgramInterface(tk.Tk):
         for topic in vk_result:
             vk_result_text += f'{topic}\n'
         #
-        # TODO вывод в поле GUI
+        # TODO
+        #  вывод в поле GUI
         #
         # -> output/vk.txt
         with open("output/vk.txt", "w") as vk_output:
@@ -349,15 +421,21 @@ class ProgramInterface(tk.Tk):
         self.status_label.config(text="Done")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    # Поля: tg_chat_names, vk_chat_ids
-    #  заполняются после нажатия кнопки в program_interface
-    data_parser = DataParser()
+    #
+    # поля: tg_chat_names, vk_chat_ids
+    #  заполняются в program_interface
+    #   после нажатия КНОПКИ
+    #
+    data_parser       = DataParser()
 
-    text_processor = TextProcessor(data_parser.russian_stopwords)
+    text_processor    = TextProcessor()
+    topic_modeler     = TopicModeler()
 
-    topic_modeler = TopicModeler()
-
-    program_interface = ProgramInterface(data_parser, text_processor, topic_modeler)
+    program_interface = ProgramInterface(
+                            data_parser,
+                            text_processor,
+                            topic_modeler)
+    
     program_interface.mainloop()

@@ -4,11 +4,18 @@
 
 ## Roadmap
 
+### in-progress
+
+- [ ] `TesxProcessor: pool.map()`
 - [ ] `DataParser.async_vk_task()`
+
+### todo
+
 - [ ] ~~`LDA_model`~~ `frequency = {}`
 - [ ] GUI: input `topics_num`
 - [ ] GUI: input `parsing_depth`
 - [ ] GUI: output `frequency`
+- [ ] GUI: `init_button`
 
 
 ## Supported OSs
@@ -88,5 +95,5 @@ in the following format:
 # Input: path to 'tg.txt'
 # Input: path to 'vk.txt'
 
-# Okay lets go ..
+# Okay lets go
 ```
