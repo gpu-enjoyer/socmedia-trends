@@ -6,16 +6,16 @@
 
 ### in-progress
 
-- [ ] `TesxProcessor: pool.map()`
-- [ ] `DataParser.async_vk_task()`
+- [x] `text_procesor.start_pool(texts)`
+- [ ] ~~`LDA_model`~~ `frequency_counter.py`
+- [ ] GUI: output `frequency`
 
 ### todo
 
-- [ ] ~~`LDA_model`~~ `frequency = {}`
-- [ ] GUI: input `topics_num`
-- [ ] GUI: input `parsing_depth`
-- [ ] GUI: output `frequency`
-- [ ] GUI: `init_button`
+- [ ] `DataParser.async_vk_task()`
+- [ ] GUI: input  `topics_num`
+- [ ] GUI: input  `parsing_depth`
+- [ ] GUI: button `init_button`
 
 
 ## Supported OSs
@@ -27,7 +27,7 @@ Linux
 
 ## GUI demo
 
-<img src="gui_demo.png" width="80%">
+<img src="md/gui_demo.png" width="80%">
 
 
 ## Get Telegram tokens
@@ -88,12 +88,17 @@ in the following format:
 ## Run
 
 ```bash
-./install.sh  # Do it once
+./script/install.sh  # Do it once
 
-./run.sh
+./script/run.sh
 
-# Input: path to 'tg.txt'
-# Input: path to 'vk.txt'
+# Input:
+#  paths to tg.txt, vk.txt
+#   relative to the project root directory
 
-# Okay lets go
+# Push:
+#  [Okay lets go]
 ```
+
+
+[Notes](md/notes.md)
