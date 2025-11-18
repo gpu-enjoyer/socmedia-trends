@@ -6,8 +6,6 @@ ORIG_DIR="$(pwd)"
 PROJ_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJ_DIR"
 
-[ -d output ] && rm -rf output
-mkdir output
 source .venv/bin/activate
 python3 -m src.main
 
