@@ -4,6 +4,6 @@
 __pycache__
 
 output/
-# input.json
+input.json
 input_tmp.json
 _data_parser.py
