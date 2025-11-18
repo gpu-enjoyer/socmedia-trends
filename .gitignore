@@ -4,6 +4,7 @@
 __pycache__
 
 output/
-input.json
-input_tmp.json
 _data_parser.py
+
+# git update-index --skip-worktree input.json
+input.json
