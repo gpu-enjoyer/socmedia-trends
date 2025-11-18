@@ -1,0 +1,17 @@
+{
+    "tg": {
+        "api_id": "12345678",
+        "api_hash":"privet123",
+        "chat_names":[
+            "name_0",
+            "name_1"
+        ]
+    },
+    "vk": {
+        "api_token":"123privet",
+        "chat_ids": [
+            "12345678",
+            "91011121"
+        ]
+    }
+}

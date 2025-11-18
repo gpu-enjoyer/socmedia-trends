@@ -1,0 +1,9 @@
+
+.vscode/
+.venv/
+__pycache__
+
+output/
+# input.json
+input_tmp.json
+_data_parser.py
