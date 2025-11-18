@@ -1,6 +1,6 @@
 
 .vscode
-.venv
+venv
 output
 tokens.json
 __pycache__

@@ -5,16 +5,16 @@ set -e
 ORIG_DIR="$(pwd)"
 PROJ_DIR="$(cd "$(dirname "$0")/.." && pwd)" 
 
-cd "$PROJ_DIR"  # !!
+cd "$PROJ_DIR"
 
 dpkg -s python3-tk >/dev/null 2>&1 || \
 sudo apt install -y python3-tk
 
-rm -rf .venv
+rm -rf venv
 rm -rf src/__pycache__
 
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 
 python3 -m pip install --upgrade pip
 
