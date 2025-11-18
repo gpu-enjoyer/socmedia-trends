@@ -13,7 +13,7 @@ class GUI:
         ### DISP ###
         self.DISP = disp
         self.DISP.title("Soc-Media Trends")
-        self.DISP.geometry("700x150")
+        self.DISP.geometry("500x150")
         ### ROW_0 ###
         ROW_0 = tk.Frame(self.DISP)
         ROW_0.grid(row=0, column=0, padx=30, pady=(10, 5), sticky='nsew')
@@ -24,6 +24,7 @@ class GUI:
         self.ENT_0 = tk.Entry(BRD_0, borderwidth=10, relief=tk.FLAT)
         self.ENT_0.insert(0, self.default_path)
         self.ENT_0.pack(fill='both', expand=True)
+        self.ENT_0.bind('<Map>', self.out_ENT_0)
         #
         self.ENT_0.bind('<FocusIn>',  self.on_ENT_0 )
         self.ENT_0.bind('<FocusOut>', self.out_ENT_0)
@@ -57,8 +58,6 @@ class GUI:
         val = self.ENT_0.get()
         if not val:
             self.ENT_0.insert(0, self.default_path)
-            self.ENT_0.configure(background='light gray')
-            return
         if self.check_path(val):
             self.ENT_0.configure(background='light green')
         else:
