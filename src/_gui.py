@@ -1,8 +1,9 @@
 
-import tkinter     as     tk
-from   tkinter.ttk import Treeview
-from   tkinter.ttk import Style
-from   pathlib     import Path
+import tkinter         as     tk
+from   tkinter.ttk     import Treeview, Style
+from   os.path         import exists, splitext, abspath
+
+from    src._parser_tg import *
 
 class GUI:
     def __init__(self, disp: tk.Tk):
@@ -48,6 +49,7 @@ class GUI:
         ## 01
         B_01 = tk.Frame(self.ROW_0, borderwidth=3, relief=tk.SUNKEN)
         B_01.grid(row=0, column=1, sticky='nsew')
+        # !!!
         self.BTN_01 = tk.Button(B_01, text="Load", command=self.clk_BTN_01)
         self.BTN_01.pack(fill='both', expand=True)
         ## 02
@@ -60,11 +62,12 @@ class GUI:
         self.ROW_1.grid(row=1, column=0, padx=30, pady=(0,10), sticky='nsew')
         B_1 = tk.Frame(self.ROW_1, borderwidth=3, relief=tk.SUNKEN)
         B_1.grid(row=0, column=0, sticky='nsew')
+        # !!!
         self.LOG_1 = tk.Text(B_1, state='disabled', height=6)
-        SCR_1 = tk.Scrollbar(B_1, command=self.LOG_1.yview)
-        self.LOG_1.config(yscrollcommand=SCR_1.set)
+        # SCR_1 = tk.Scrollbar(B_1, command=self.LOG_1.yview)
+        # self.LOG_1.config(yscrollcommand=SCR_1.set)
         self.LOG_1.pack(side='left', fill='both', expand=True)
-        SCR_1.pack(side='right', fill='y')
+        # SCR_1.pack(side='right', fill='y')
         self.LOG_1.bind('<Button>', lambda e: self.LOG_1.focus_set())
         ### ROW_2 ###
         self.ROW_2 = tk.Frame(self.DISP)
@@ -85,30 +88,43 @@ class GUI:
         TBL_2.pack(fill="both", expand=True)
 
     def check_path(self, p: str) -> bool:
-        if Path(p).exists(): return True
+        if exists(p):
+            name, ext = splitext(p)
+            if (ext == ".json"):
+                return True
         return False
 
     def on_ENT_00(self, event):
-        val = self.ENT_00.get()
-        if self.ENT_00.get() == self.default_path:
-            self.ENT_00.delete(0, 'end')
         self.ENT_00.selection_clear()
-        self.ENT_00.configure(background='light gray')
+        self.ENT_00.configure(background='white')
 
     def out_ENT_00(self, event):
         val = self.ENT_00.get()
         if not val:
-            self.ENT_00.insert(0, self.default_path)
             val = self.default_path
+            self.ENT_00.insert(0, val)
         if self.check_path(val):
             self.ENT_00.configure(background='light green')
         else:
             self.ENT_00.configure(background='light coral')
 
-    # todo: check config, try to connect
+    def log(self, s: str):
+        self.LOG_1.config(state='normal') 
+        self.LOG_1.insert('end', s+'\n')
+        self.LOG_1.see('end')
+        self.LOG_1.config(state='disabled')
+
+    # todo: try { load_tokens, load_chats, connect }
     def clk_BTN_01(self):
-        pass
+        val = self.ENT_00.get()
+        if not self.check_path(val):
+            self.log("ERR: input path to *.json")
+            return
+        self.log(f"Loading: \"{abspath(val)}\" ...")
+        # self.parser_tg = ParserTg()
+        # log_msg = self.parser_tg.get_tokens(val)
 
     # todo: ParserTg.parse()
     def clk_BTN_02(self):
+        # self.parser_tg.parse()
         pass

@@ -4,7 +4,7 @@
 __pycache__
 
 output/
-_data_parser.py
+_parser_tg.py
 
 # git update-index --skip-worktree input.json
 input.json

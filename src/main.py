@@ -1,6 +1,7 @@
 
-from src._gui import tk, GUI
+from tkinter  import Tk
+from src._gui import GUI
 
-root = tk.Tk()
+root = Tk()
 app  = GUI(root)
 root.mainloop()
