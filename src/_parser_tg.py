@@ -2,26 +2,29 @@
 import json
 
 class ParserTg:
-    log:        list[str]
-    is_empty:   bool
-    api_id:     str
-    api_hash:   str
-    chat_names: list[str]
-    depth:      int
+    log:         list[str]
+    is_prepared: bool
+    api_id:      str
+    api_hash:    str
+    chat_names:  list[str]
+    depth:       int
 
-    def __init__(self, inp_path: str):
+    def __init__(self):
         self.log = []
-        self.log.append(f"ParserTg(\"{inp_path}\")")
-        self.is_empty = True
-        conf = {}
+        self.log.append(f"ParserTg()")
+        self.is_prepared = False
+
+    def set_fields(self, inp_path: str):
+        self.log.append(f"ParserTg.set_fields(\"{inp_path}\")")
+        flag = True
+        config = {}
         try:
             with open(inp_path) as inp_file:
                 loaded_file = json.load(inp_file)
                 if "tg" in loaded_file:
-                    conf = loaded_file['tg']
-                    self.is_empty = False
+                    config = loaded_file['tg']
                 else:
-                    self.log.append(f"  'tg' key not found - won't be parsed!")
+                    self.log.append(f"  'tg' key not found")
                     return
         except FileNotFoundError:
             self.log.append(f"  FileNotFoundError")
@@ -29,26 +32,30 @@ class ParserTg:
         except json.JSONDecodeError:
             self.log.append(f"  JSONDecodeError")
             return
-        if "api_id" in conf:
-            self.api_id = str(conf["api_id"])
+        if "api_id" in config:
+            self.api_id = str(config["api_id"])
             masked = self.api_id[:2] + '*' * (len(self.api_id) - 2)
-            self.log.append(f"  api_id = {masked}")
+            self.log.append(f"  api_id     = {masked}")
         else:
             self.log.append(f"  'api_id' not found")
-        if "api_hash" in conf:
-            self.api_hash = str(conf["api_hash"])
+            flag = False
+        if "api_hash" in config:
+            self.api_hash = str(config["api_hash"])
             masked = self.api_hash[:3] + '*' * (len(self.api_hash) - 3)
-            self.log.append(f"  api_hash = {masked}")
+            self.log.append(f"  api_hash   = {masked}")
         else:
             self.log.append(f"  'api_hash' not found")
-        if "chat_names" in conf:
-            self.chat_names = list[str](conf["chat_names"])
+            flag = False
+        if "chat_names" in config:
+            self.chat_names = list(config["chat_names"])
             self.log.append(f"  chat_names = [{self.chat_names[0]}, ...]")
         else:
             self.log.append(f"  'chat_names' not found")
-        if "depth" in conf:
-            self.depth = int(conf["depth"])
-            self.log.append(f"  depth = {self.depth}")
+            flag = False
+        if "depth" in config:
+            self.depth = int(config["depth"])
+            self.log.append(f"  depth      = {self.depth}")
         else:
             self.log.append(f"  'depth' not found")
-
+        # ready to try connection
+        self.is_prepared = self.is_prepared or flag

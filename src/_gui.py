@@ -7,6 +7,7 @@ from    src._parser_tg import ParserTg
 
 class GUI:
     def __init__(self, disp: tk.Tk):
+        self.parser_tg = ParserTg()
         self.create_widgets(disp)
         self.config_grid()
 
@@ -49,7 +50,6 @@ class GUI:
         ## 01
         B_01 = tk.Frame(self.ROW_0, borderwidth=3, relief=tk.SUNKEN)
         B_01.grid(row=0, column=1, sticky='nsew')
-        # !!!
         self.BTN_01 = tk.Button(B_01, text="Load", command=self.clk_BTN_01)
         self.BTN_01.pack(fill='both', expand=True)
         ## 02
@@ -62,7 +62,7 @@ class GUI:
         self.ROW_1.grid(row=1, column=0, padx=30, pady=(0,10), sticky='nsew')
         B_1 = tk.Frame(self.ROW_1, borderwidth=3, relief=tk.SUNKEN)
         B_1.grid(row=0, column=0, sticky='nsew')
-        self.LOG_1 = tk.Text(B_1, state='disabled', height=6)
+        self.LOG_1 = tk.Text(B_1, state='disabled', height=6, borderwidth=10, relief=tk.FLAT)
         self.LOG_1.pack(side='left', fill='both', expand=True)
         self.LOG_1.bind('<Button>', lambda e: self.LOG_1.focus_set())
         ### ROW_2 ###
@@ -123,10 +123,16 @@ class GUI:
             return
         self.log(f"Loading: \"{val}\" ...")
         val = abspath(val)
-        self.parser_tg = ParserTg(val)
+        self.parser_tg.set_fields(val)
         self.log(self.parser_tg.log)
+        if self.parser_tg.is_prepared:
+            self.log("GUI.parser_tg: is prepared to try connection")
+        else:
+            self.log("GUI.parser_tg: not prepared.\n  Fix .json")
 
-    # todo: ParserTg.parse()
     def clk_BTN_02(self):
+        if not self.parser_tg.is_prepared:
+            self.log("GUI.parser_tg: not prepared.\n  Fix .json")
+            return
+        # self.parser_tg.connect()
         # self.parser_tg.parse()
-        pass
