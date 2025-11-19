@@ -3,7 +3,7 @@ import tkinter         as     tk
 from   tkinter.ttk     import Treeview, Style
 from   os.path         import exists, splitext, abspath
 
-from    src._parser_tg import *
+from    src._parser_tg import ParserTg
 
 class GUI:
     def __init__(self, disp: tk.Tk):
@@ -13,9 +13,9 @@ class GUI:
     def config_grid(self):
         # DISP
         self.DISP.grid_columnconfigure(0, weight=1)
-        self.DISP.grid_rowconfigure(0, weight=1)
-        self.DISP.grid_rowconfigure(1, weight=2)
-        self.DISP.grid_rowconfigure(2, weight=30)
+        self.DISP.grid_rowconfigure(0, weight=1, minsize=80)
+        self.DISP.grid_rowconfigure(1, weight=2, minsize=120)
+        self.DISP.grid_rowconfigure(2, weight=2, minsize=120)
         # ROW_0
         self.ROW_0.grid_rowconfigure(0, weight=1)
         self.ROW_0.grid_columnconfigure(0, weight=7) # ENT_00
@@ -62,12 +62,8 @@ class GUI:
         self.ROW_1.grid(row=1, column=0, padx=30, pady=(0,10), sticky='nsew')
         B_1 = tk.Frame(self.ROW_1, borderwidth=3, relief=tk.SUNKEN)
         B_1.grid(row=0, column=0, sticky='nsew')
-        # !!!
         self.LOG_1 = tk.Text(B_1, state='disabled', height=6)
-        # SCR_1 = tk.Scrollbar(B_1, command=self.LOG_1.yview)
-        # self.LOG_1.config(yscrollcommand=SCR_1.set)
         self.LOG_1.pack(side='left', fill='both', expand=True)
-        # SCR_1.pack(side='right', fill='y')
         self.LOG_1.bind('<Button>', lambda e: self.LOG_1.focus_set())
         ### ROW_2 ###
         self.ROW_2 = tk.Frame(self.DISP)
@@ -76,7 +72,7 @@ class GUI:
         B_2.grid(row=0, column=0, sticky='nsew')
         TBL_2_style = Style()
         TBL_2_style.configure("Treeview", padding=(10,5), rowheight=25)
-        TBL_2 = Treeview(B_2)
+        TBL_2 = Treeview(B_2, height=6)
         TBL_2["columns"] = ("freq", "word")
         TBL_2['show'] = "headings"
         TBL_2.heading("freq", text="Frequency", anchor="center")
@@ -108,21 +104,27 @@ class GUI:
         else:
             self.ENT_00.configure(background='light coral')
 
-    def log(self, s: str):
+    def log(self, msg):
         self.LOG_1.config(state='normal') 
-        self.LOG_1.insert('end', s+'\n')
+        if isinstance(msg, str):
+            self.LOG_1.insert('end', msg+'\n')
+        elif isinstance(msg, list):
+            for line in msg:
+                self.LOG_1.insert('end', line+'\n')
+        else:
+            self.LOG_1.insert('end', "Unknown type of log message!\n")
         self.LOG_1.see('end')
         self.LOG_1.config(state='disabled')
 
-    # todo: try { load_tokens, load_chats, connect }
     def clk_BTN_01(self):
         val = self.ENT_00.get()
         if not self.check_path(val):
-            self.log("ERR: input path to *.json")
+            self.log("Input: path to \"*.json\"")
             return
-        self.log(f"Loading: \"{abspath(val)}\" ...")
-        # self.parser_tg = ParserTg()
-        # log_msg = self.parser_tg.get_tokens(val)
+        self.log(f"Loading: \"{val}\" ...")
+        val = abspath(val)
+        self.parser_tg = ParserTg(val)
+        self.log(self.parser_tg.log)
 
     # todo: ParserTg.parse()
     def clk_BTN_02(self):
