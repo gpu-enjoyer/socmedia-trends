@@ -14,9 +14,9 @@ class GUI:
     def config_grid(self):
         # DISP
         self.DISP.grid_columnconfigure(0, weight=1)
-        self.DISP.grid_rowconfigure(0, weight=1, minsize=80)
-        self.DISP.grid_rowconfigure(1, weight=2, minsize=120)
-        self.DISP.grid_rowconfigure(2, weight=2, minsize=120)
+        self.DISP.grid_rowconfigure(0, weight=0,  minsize=70)
+        self.DISP.grid_rowconfigure(1, weight=10, minsize=100)
+        self.DISP.grid_rowconfigure(2, weight=13, minsize=130)
         # ROW_0
         self.ROW_0.grid_rowconfigure(0, weight=1)
         self.ROW_0.grid_columnconfigure(0, weight=7) # ENT_00
@@ -34,12 +34,13 @@ class GUI:
         ### DISP ###
         self.DISP = disp
         self.DISP.title("Soc-Media Trends")
-        self.DISP.geometry("700x500")
+        self.DISP.geometry("600x450")
+        padx=10
         ### ROW_0 ###
         self.ROW_0 = tk.Frame(self.DISP)
-        self.ROW_0.grid(row=0, column=0, padx=30, pady=(10,10), sticky='nsew')
+        self.ROW_0.grid(row=0, column=0, padx=padx, pady=(10,10), sticky='nsew')
         ## 00
-        B_00 = tk.Frame(self.ROW_0, borderwidth=3, relief=tk.SUNKEN)
+        B_00 = tk.Frame(self.ROW_0, borderwidth=3, relief=tk.SUNKEN, height=1)
         B_00.grid(row=0, column=0, sticky='nsew')
         self.ENT_00 = tk.Entry(B_00, borderwidth=10, relief=tk.FLAT)
         self.ENT_00.insert(0, self.default_path)
@@ -59,20 +60,20 @@ class GUI:
         self.BTN_02.pack(fill='both', expand=True)
         ### ROW_1 ###
         self.ROW_1 = tk.Frame(self.DISP)
-        self.ROW_1.grid(row=1, column=0, padx=30, pady=(0,10), sticky='nsew')
+        self.ROW_1.grid(row=1, column=0, padx=padx, pady=(0,10), sticky='nsew')
         B_1 = tk.Frame(self.ROW_1, borderwidth=3, relief=tk.SUNKEN)
         B_1.grid(row=0, column=0, sticky='nsew')
-        self.LOG_1 = tk.Text(B_1, state='disabled', height=6, borderwidth=10, relief=tk.FLAT)
+        self.LOG_1 = tk.Text(B_1, state='disabled', height=1, padx=10, relief=tk.FLAT)
         self.LOG_1.pack(side='left', fill='both', expand=True)
         self.LOG_1.bind('<Button>', lambda e: self.LOG_1.focus_set())
         ### ROW_2 ###
         self.ROW_2 = tk.Frame(self.DISP)
-        self.ROW_2.grid(row=2, column=0, padx=30, pady=(0,10), sticky='nsew')
+        self.ROW_2.grid(row=2, column=0, padx=padx, pady=(0,10), sticky='nsew')
         B_2 = tk.Frame(self.ROW_2, borderwidth=3, relief=tk.SUNKEN)
         B_2.grid(row=0, column=0, sticky='nsew')
         TBL_2_style = Style()
         TBL_2_style.configure("Treeview", padding=(10,5), rowheight=25)
-        TBL_2 = Treeview(B_2, height=6)
+        TBL_2 = Treeview(B_2, height=1)
         TBL_2["columns"] = ("freq", "word")
         TBL_2['show'] = "headings"
         TBL_2.heading("freq", text="Frequency", anchor="center")

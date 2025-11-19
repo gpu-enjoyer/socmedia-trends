@@ -15,6 +15,7 @@ class ParserTg:
         self.is_prepared = False
 
     def set_fields(self, inp_path: str):
+        self.log = []
         self.log.append(f"ParserTg.set_fields(\"{inp_path}\")")
         flag = True
         config = {}
@@ -59,3 +60,6 @@ class ParserTg:
             self.log.append(f"  'depth' not found")
         # ready to try connection
         self.is_prepared = self.is_prepared or flag
+
+    def connect(self):
+        pass
