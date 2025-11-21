@@ -153,9 +153,9 @@ class GUI:
         self.log("1. Parsing started ...")
         time_0 = time.time()
         raw_data = asyncio.run(self.parser.parse())
-        time_p = time.time() - time_0
+        time_pars = time.time() - time_0
         self.log(self.parser.log_info)
-        self.log(f"   Parsing done: {len(raw_data)} msgs in {time_p:.1f}s")
+        self.log(f"   Parsing done: {len(raw_data)} msgs in {time_pars:.1f}s")
         # 2. PROCESSING
         self.log("2. Processing started ...")
         if not raw_data:
@@ -164,9 +164,9 @@ class GUI:
             return
         time_1 = time.time()
         proc_data = self.processor.start_pool(raw_data)
-        time_pr = time.time() - time_1
+        time_proc = time.time() - time_1
         self.log(self.processor.log_info)
-        self.log(f"   Processing done: {time_pr:.1f}s")
+        self.log(f"   Processing done: {time_proc:.1f}s")
         # 3. SAVING
         self.log("3. Saving started ...")
         rawdata_path = str(self.parser.dir_path + "/raw_data.csv")
