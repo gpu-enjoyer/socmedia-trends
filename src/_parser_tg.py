@@ -6,7 +6,7 @@ from   pyrogram.client import Client
 from   pyrogram.types  import Chat
 
 
-class Parser:
+class ParserTg:
     log_info:    list[str]
     is_prepared: bool
     api_id:      str

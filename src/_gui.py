@@ -7,13 +7,13 @@ import tkinter        as     tk
 from   tkinter.ttk    import Treeview, Style
 from   os.path        import exists, splitext, abspath
 
-from   src._parser    import Parser
+from   src._parser_tg import ParserTg
 from   src._processor import Processor
 
 
 class GUI:
     def __init__(self, disp: tk.Tk):
-        self.parser    = Parser()
+        self.parser_tg = ParserTg()
         self.processor = Processor()
         self.create_widgets(disp)
         self.config_grid()
@@ -128,20 +128,20 @@ class GUI:
             return
         self.log(f"Loading: \"{val}\" ...")
         val = abspath(val)
-        self.parser.set_fields(val)
-        self.log(self.parser.log_info)
-        if self.parser.is_prepared:
-            self.log("GUI.parser: prepared")
+        self.parser_tg.set_fields(val)
+        self.log(self.parser_tg.log_info)
+        if self.parser_tg.is_prepared:
+            self.log("GUI.parser_tg: prepared")
         else:
-            self.log("GUI.parser not prepared!\n Fix JSON")
+            self.log("GUI.parser_tg not prepared!\n Fix JSON")
 
     def clk_BTN_02(self):
-        if not self.parser.is_prepared:
-            self.log("GUI.parser not prepared!\n Load JSON first")
+        if not self.parser_tg.is_prepared:
+            self.log("GUI.parser_tg not prepared!\n Load JSON first")
             return
         self.BTN_01.config(state='disabled')
         self.BTN_02.config(state='disabled')
-        self.parser.log_info    = []
+        self.parser_tg.log_info    = []
         self.processor.log_info = []
         threading.Thread(target=self.run_workflow).start()
 
@@ -150,9 +150,9 @@ class GUI:
         # 1. PARSING
         self.log("1. Parsing started ...")
         time_1 = time.time() #!
-        raw_data = asyncio.run(self.parser.parse())
+        raw_data = asyncio.run(self.parser_tg.parse())
         time_pars = time.time() - time_1 #!
-        self.log(self.parser.log_info)
+        self.log(self.parser_tg.log_info)
         self.log(f"   Parsing done: {len(raw_data)} messages by {time_pars:.1f}s")
         # 2. PROCESSING
         self.log("2. Processing started ...")
@@ -180,7 +180,7 @@ class GUI:
         for (word,freq) in proc_data:
             self.TBL_2.insert("", "end", values=(freq, word))
         #
-        rawdata_path = str(self.parser.dir_path + "/raw_data.csv")
+        rawdata_path = str(self.parser_tg.dir_path + "/raw_data.csv")
         try:
             with open(rawdata_path, 'w', encoding='utf-8') as f:
                 for s in raw_data: f.write(s + '\n')
@@ -188,7 +188,7 @@ class GUI:
         except Exception as e:
             self.log(f"   Error saving {rawdata_path}: {e}")
         #
-        procdata_path = str(self.parser.dir_path + "/proc_data.csv")
+        procdata_path = str(self.parser_tg.dir_path + "/proc_data.csv")
         try:
             with open(procdata_path, 'w', encoding='utf-8') as f:
                 f.write("freq,word\n")
