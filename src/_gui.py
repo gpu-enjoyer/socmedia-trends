@@ -151,38 +151,43 @@ class GUI:
         self.log("=== Pipeline Started ===")
         # 1. PARSING
         self.log("1. Parsing started ...")
-        time_0 = time.time()
+        time_1 = time.time()
         raw_data = asyncio.run(self.parser.parse())
-        time_pars = time.time() - time_0
+        time_pars = time.time() - time_1
         self.log(self.parser.log_info)
-        self.log(f"   Parsing done: {len(raw_data)} msgs in {time_pars:.1f}s")
+        self.log(f"   Parsing done: {len(raw_data)} messages by {time_pars:.1f}s")
         # 2. PROCESSING
         self.log("2. Processing started ...")
         if not raw_data:
-            self.log("   No data to process.")
+            self.log("   No data to process")
             self.finish_workflow()
             return
-        time_1 = time.time()
-        proc_data = self.processor.start_pool(raw_data)
-        time_proc = time.time() - time_1
+        time_2 = time.time()
+        proc_data   = self.processor.start_pool(raw_data) # Counter
+        sorted_data = proc_data.most_common()             # list[tuple[str, int]]
+        time_proc = time.time() - time_2
         self.log(self.processor.log_info)
-        self.log(f"   Processing done: {time_proc:.1f}s")
+        self.log(f"   Processing done: {len(sorted_data)} unique words by {time_proc:.1f}s")
         # 3. SAVING
         self.log("3. Saving started ...")
+        #
         rawdata_path = str(self.parser.dir_path + "/raw_data.csv")
         try:
             with open(rawdata_path, 'w', encoding='utf-8') as f:
                 for s in raw_data: f.write(s + '\n')
-            self.log(f"  Saved to: {rawdata_path}")
+            self.log(f"   Saved to: {rawdata_path}")
         except Exception as e:
-            self.log(f"  Error saving {rawdata_path}: {e}")
+            self.log(f"   Error saving {rawdata_path}: {e}")
+        #
         procdata_path = str(self.parser.dir_path + "/proc_data.csv")
         try:
             with open(procdata_path, 'w', encoding='utf-8') as f:
-                for s in proc_data: f.write(s + '\n')
-            self.log(f"  Saved to: {procdata_path}")
+                f.write("freq,word\n")
+                for word, freq in sorted_data:
+                    f.write(f"{freq},{word}\n")
+            self.log(f"   Saved to: {procdata_path}")
         except Exception as e:
-            self.log(f"  Error saving {procdata_path}: {e}")
+            self.log(f"   Error saving {procdata_path}: {e}")
         self.finish_workflow()
 
     def finish_workflow(self):
