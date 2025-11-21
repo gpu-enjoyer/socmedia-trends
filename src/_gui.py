@@ -112,15 +112,13 @@ class GUI:
         else:
             self.ENT_00.configure(background='light coral')
 
-    def log(self, msg):
+    def log(self, msg: str | list[str]):
         self.LOG_1.config(state='normal') 
         if isinstance(msg, str):
             self.LOG_1.insert('end', msg+'\n')
-        elif isinstance(msg, list):
+        else:
             for line in msg:
                 self.LOG_1.insert('end', line+'\n')
-        else:
-            self.LOG_1.insert('end', "Unknown type of log message!\n")
         self.LOG_1.see('end')
         self.LOG_1.config(state='disabled')
 
@@ -142,6 +140,7 @@ class GUI:
         if not self.parser.is_prepared:
             self.log("GUI.parser not prepared!\n Load JSON first")
             return
+        self.BTN_01.config(state='disabled')
         self.BTN_02.config(state='disabled')
         self.parser.log_info    = []
         self.processor.log_info = []
@@ -163,11 +162,19 @@ class GUI:
             self.finish_workflow()
             return
         time_2 = time.time()
-        proc_data   = self.processor.start_pool(raw_data) # Counter
-        sorted_data = proc_data.most_common()             # list[tuple[str, int]]
+        proc_data = self.processor.start_pool(raw_data)
+        #  : Counter
+        proc_data = proc_data.most_common()
+        #  : list[tuple[str, int]]
+        idx = len(proc_data)
+        for t in proc_data:
+            if t[1] <= 2:
+                idx = proc_data.index(t)
+                break
+        proc_data = proc_data[:idx]
         time_proc = time.time() - time_2
         self.log(self.processor.log_info)
-        self.log(f"   Processing done: {len(sorted_data)} unique words by {time_proc:.1f}s")
+        self.log(f"   Processing done: {len(proc_data)} unique words by {time_proc:.1f}s")
         # 3. SAVING
         self.log("3. Saving started ...")
         #
@@ -183,7 +190,7 @@ class GUI:
         try:
             with open(procdata_path, 'w', encoding='utf-8') as f:
                 f.write("freq,word\n")
-                for word, freq in sorted_data:
+                for (word,freq) in proc_data:
                     f.write(f"{freq},{word}\n")
             self.log(f"   Saved to: {procdata_path}")
         except Exception as e:
@@ -192,4 +199,5 @@ class GUI:
 
     def finish_workflow(self):
         self.log("=== Pipeline Finished ===")
+        self.BTN_01.config(state='normal')
         self.BTN_02.config(state='normal')

@@ -8,8 +8,22 @@ import nltk
 from   collections     import Counter
 
 
+__my_stopwords: set[str] = set(
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+    "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    "0123456789"
+    ".,;:!?-—()[]{}'\"«»‹›/\\@#№$%&*+=_<>^`~|^"
+    " \t\n"
+) | {
+    "который", "которая", "которое",
+    "https", "http", "://", "ru", "com",
+    "»,", "%,", "↖"
+}
+
 __mystem        = Mystem(mystem_bin="/usr/local/bin/mystem")
-__rus_stopwords = set(nltk.corpus.stopwords.words("russian"))
+__rus_stopwords = set(nltk.corpus.stopwords.words("russian")) | __my_stopwords
 
 
 def init_worker():
@@ -22,7 +36,9 @@ def worker_func(text: str) -> Counter:
         return Counter()
     try:
         words = mystem.lemmatize(text.lower())
-        filtered = [w for w in words if w.strip() and w not in rus_stopwords]
+        filtered = [w
+                    for w in words
+                    if w.strip() and w.strip() not in rus_stopwords]
         return Counter(filtered)
     except Exception:
         return Counter()
@@ -47,7 +63,6 @@ class Processor:
             cores_num = 1
         self.log_info.append(f"   cores_num = {cores_num}")
         with Pool(processes=cores_num, initializer=init_worker) as pool:
-            #!!!
             try:
                 test_text = "Который год разработчики говорят о новейших технологиях"
                 test_res  = pool.apply(worker_func, [test_text]) 
@@ -56,27 +71,9 @@ class Processor:
             except Exception as e:
                 self.log_info.append(f"   ERR: Worker crashed: {e}")
                 return Counter()
-            #!!!
             results = pool.map(worker_func, texts)
             # [Counter('privet':1), Counter('kak_dela':2), ...]
         total_counter = Counter()
         for cnt in results:
             total_counter.update(cnt)
         return total_counter
-
-    # def __test(self) -> bool:
-    #     if not isinstance(mystem, Mystem):
-    #         self.log_info.append("  ERR: var 'mystem' is not Mystem")
-    #         return False
-    #     if not isinstance(rus_stopwords, set):
-    #         self.log_info.append("  ERR: var 'rus_stopwords' is not set")
-    #         return False
-    #     self.log_info.append(f"rus_stopwords: {list(rus_stopwords)[:5]}")
-    #     test_text   = "Который год разработчики говорят о новейших технологиях"
-    #     test_lemmas = mystem.lemmatize(test_text)
-    #     test_stopw  = [w
-    #                    for w in test_lemmas
-    #                    if w.strip() and w not in rus_stopwords]
-    #     self.log_info.append(f"test_text   = \"{test_text}\"")
-    #     self.log_info.append(f"test_lemmas = \"{test_lemmas}\"")
-    #     return True
