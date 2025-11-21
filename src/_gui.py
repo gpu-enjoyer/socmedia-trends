@@ -80,16 +80,15 @@ class GUI:
         B_2.grid(row=0, column=0, sticky='nsew')
         TBL_2_style = Style()
         TBL_2_style.configure("Treeview", padding=(10,5), rowheight=25)
-        TBL_2 = Treeview(B_2, height=1)
-        TBL_2["columns"] = ("freq", "word")
-        TBL_2['show'] = "headings"
-        TBL_2.heading("freq", text="Frequency", anchor="center")
-        TBL_2.heading("word", text="Word", anchor="center")
-        TBL_2.column("freq", anchor="center", )
-        TBL_2.column("word", anchor="center", )
-        TBL_2.insert("", "end", values=(10, "Привет"))
-        TBL_2.insert("", "end", values=(3, "Пока"))
-        TBL_2.pack(fill="both", expand=True)
+        self.TBL_2 = Treeview(B_2, height=1)
+        self.TBL_2["columns"] = ("freq", "word")
+        self.TBL_2['show'] = "headings"
+        self.TBL_2.heading("freq", text="Frequency", anchor="center")
+        self.TBL_2.heading("word", text="Word", anchor="center")
+        self.TBL_2.column("freq", anchor="center", )
+        self.TBL_2.column("word", anchor="center", )
+        self.TBL_2.insert("", "end", values=(10, "Привет"))
+        self.TBL_2.pack(fill="both", expand=True)
 
     def check_path(self, p: str) -> bool:
         if exists(p):
@@ -150,9 +149,9 @@ class GUI:
         self.log("=== Pipeline Started ===")
         # 1. PARSING
         self.log("1. Parsing started ...")
-        time_1 = time.time()
+        time_1 = time.time() #!
         raw_data = asyncio.run(self.parser.parse())
-        time_pars = time.time() - time_1
+        time_pars = time.time() - time_1 #!
         self.log(self.parser.log_info)
         self.log(f"   Parsing done: {len(raw_data)} messages by {time_pars:.1f}s")
         # 2. PROCESSING
@@ -161,22 +160,25 @@ class GUI:
             self.log("   No data to process")
             self.finish_workflow()
             return
-        time_2 = time.time()
+        time_2 = time.time() #!
         proc_data = self.processor.start_pool(raw_data)
         #  : Counter
         proc_data = proc_data.most_common()
         #  : list[tuple[str, int]]
-        idx = len(proc_data)
+        idx = old_len = len(proc_data)
         for t in proc_data:
             if t[1] <= 2:
                 idx = proc_data.index(t)
                 break
         proc_data = proc_data[:idx]
-        time_proc = time.time() - time_2
+        time_proc = time.time() - time_2 #!
         self.log(self.processor.log_info)
-        self.log(f"   Processing done: {len(proc_data)} unique words by {time_proc:.1f}s")
+        self.log(f"   Processing done: {len(proc_data)}/{old_len} unique words by {time_proc:.1f}s")
         # 3. SAVING
         self.log("3. Saving started ...")
+        #
+        for (word,freq) in proc_data:
+            self.TBL_2.insert("", "end", values=(freq, word))
         #
         rawdata_path = str(self.parser.dir_path + "/raw_data.csv")
         try:
