@@ -1,1 +1,6 @@
-# empty
+
+pyrogram
+TgCrypto
+
+nltk
+pymystem3

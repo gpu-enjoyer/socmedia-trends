@@ -4,9 +4,6 @@
 ## Roadmap
 
 - [x] class GUI
-- [x] log to GUI
-- [ ] class TgParser
-- [ ] parallel processing
-- [ ] merge frequency dicts
-- [ ] class Parser
-- [ ] *class Log*
+- [x] class Parser
+- [ ] class Processor
+- [ ] class Counter

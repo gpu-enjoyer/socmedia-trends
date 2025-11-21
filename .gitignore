@@ -5,3 +5,5 @@ __pycache__
 
 # git update-index --skip-worktree input.json
 input.json
+tg.session
+data.csv

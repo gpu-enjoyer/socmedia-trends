@@ -1,13 +1,17 @@
 
-import tkinter         as     tk
-from   tkinter.ttk     import Treeview, Style
-from   os.path         import exists, splitext, abspath
+import threading
+import asyncio
+import time
 
-from    src._parser_tg import ParserTg
+import tkinter      as     tk
+from   tkinter.ttk  import Treeview, Style
+from   os.path      import exists, splitext, abspath
+
+from   src._parser  import Parser
 
 class GUI:
     def __init__(self, disp: tk.Tk):
-        self.parser_tg = ParserTg()
+        self.parser = Parser()
         self.create_widgets(disp)
         self.config_grid()
 
@@ -30,7 +34,7 @@ class GUI:
         self.ROW_2.grid_columnconfigure(0, weight=1)
 
     def create_widgets(self, disp: tk.Tk):
-        self.default_path = "./input.json"
+        self.default_path = "./InpOut/input.json"
         ### DISP ###
         self.DISP = disp
         self.DISP.title("Soc-Media Trends")
@@ -124,16 +128,25 @@ class GUI:
             return
         self.log(f"Loading: \"{val}\" ...")
         val = abspath(val)
-        self.parser_tg.set_fields(val)
-        self.log(self.parser_tg.log)
-        if self.parser_tg.is_prepared:
-            self.log("GUI.parser_tg: is prepared to try connection")
+        self.parser.set_fields(val)
+        self.log(self.parser.log)
+        if self.parser.is_prepared:
+            self.log("GUI.parser: prepared")
         else:
-            self.log("GUI.parser_tg: not prepared.\n  Fix .json")
+            self.log("GUI.parser: not prepared.\n  Fix .json")
 
     def clk_BTN_02(self):
-        if not self.parser_tg.is_prepared:
-            self.log("GUI.parser_tg: not prepared.\n  Fix .json")
+        threading.Thread(target=self.run_parser, daemon=True).start()
+    
+    def run_parser(self):
+        if not self.parser.is_prepared:
+            self.log("GUI.parser: not prepared.\n  Fix: .json")
             return
-        # self.parser_tg.connect()
-        # self.parser_tg.parse()
+        self.log("Parsing started ...")
+        time_0 = time.time()
+        all_tg_msgs =  asyncio.run(self.parser.parse())
+        time_d = time.time() - time_0
+        self.log(f"Parsing done by {time_d:.1f} seconds")
+        with open(str(self.parser.dir_path + "/data.csv"), 'w') as f:
+            for msg in all_tg_msgs:
+                f.write(msg + '\n')
