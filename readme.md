@@ -5,5 +5,5 @@
 
 - [x] class GUI
 - [x] class Parser
-- [ ] class Processor
+- [x] class Processor
 - [ ] class Counter

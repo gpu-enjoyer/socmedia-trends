@@ -7,7 +7,7 @@ from   pyrogram.types  import Chat
 
 
 class Parser:
-    log:         list[str]
+    log_info:    list[str]
     is_prepared: bool
     api_id:      str
     api_hash:    str
@@ -16,13 +16,13 @@ class Parser:
     dir_path:    str
 
     def __init__(self):
-        self.log = []
-        self.log.append("Parser.__init__()")
+        self.log_info = []
+        self.log_info.append("Parser.__init__()")
         self.is_prepared = False
 
     def set_fields(self, inp_path: str):
-        self.log = []
-        self.log.append(f"Parser.set_fields(\"{inp_path}\")")
+        self.log_info = []
+        self.log_info.append(f"Parser.set_fields(\"{inp_path}\")")
         flag = True
         config = {}
         try:
@@ -31,40 +31,40 @@ class Parser:
                 if "tg" in loaded_file:
                     config = loaded_file['tg']
                 else:
-                    self.log.append(f"  'tg' key not found")
+                    self.log_info.append(f"  'tg' key not found")
                     return
         except FileNotFoundError:
-            self.log.append(f"  FileNotFoundError")
+            self.log_info.append(f"  FileNotFoundError")
             return
         except json.JSONDecodeError:
-            self.log.append(f"  JSONDecodeError")
+            self.log_info.append(f"  JSONDecodeError")
             return
         self.dir_path = dirname(inp_path)
         if "api_id" in config:
             self.api_id = str(config["api_id"])
             masked = self.api_id[:1] + '*' * (len(self.api_id) - 1)
-            self.log.append(f"  api_id     = {masked}")
+            self.log_info.append(f"  api_id     = {masked}")
         else:
-            self.log.append(f"  'api_id' not found")
+            self.log_info.append(f"  'api_id' not found")
             flag = False
         if "api_hash" in config:
             self.api_hash = str(config["api_hash"])
             masked = self.api_hash[:2] + '*' * (len(self.api_hash) - 2)
-            self.log.append(f"  api_hash   = {masked}")
+            self.log_info.append(f"  api_hash   = {masked}")
         else:
-            self.log.append(f"  'api_hash' not found")
+            self.log_info.append(f"  'api_hash' not found")
             flag = False
         if "chat_names" in config:
             self.chat_names = ['@' + n for n in config["chat_names"]]
-            self.log.append(f"  chat_names = [{self.chat_names[0]}, ...]")
+            self.log_info.append(f"  chat_names = [{self.chat_names[0]}, ...]")
         else:
-            self.log.append(f"  'chat_names' not found")
+            self.log_info.append(f"  'chat_names' not found")
             flag = False
         if "depth" in config:
             self.depth = int(config["depth"])
-            self.log.append(f"  depth      = {self.depth}")
+            self.log_info.append(f"  depth      = {self.depth}")
         else:
-            self.log.append(f"  'depth' not found")
+            self.log_info.append(f"  'depth' not found")
         self.is_prepared = self.is_prepared or flag
 
     async def parse_chat(self, client: Client, name: str):
@@ -72,12 +72,12 @@ class Parser:
         try:
             chat = await client.get_chat(name)
             if not isinstance(chat, Chat):
-                self.log.append(f"  channel '{name}': unavailable")
+                self.log_info.append(f"  channel '{name}': unavailable")
                 return chat_msgs
             async for msg in client.get_chat_history(chat.id, limit=self.depth): #type:ignore
                 chat_msgs.append(msg.text or msg.caption or '')
         except Exception as e:
-            self.log.append(f"  channel '{name}': error {e}")
+            self.log_info.append(f"  channel '{name}': error {e}")
         return chat_msgs
 
     async def parse(self) -> list[str]:

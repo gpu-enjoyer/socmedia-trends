@@ -3,15 +3,18 @@ import threading
 import asyncio
 import time
 
-import tkinter      as     tk
-from   tkinter.ttk  import Treeview, Style
-from   os.path      import exists, splitext, abspath
+import tkinter        as     tk
+from   tkinter.ttk    import Treeview, Style
+from   os.path        import exists, splitext, abspath
 
-from   src._parser  import Parser
+from   src._parser    import Parser
+from   src._processor import Processor
+
 
 class GUI:
     def __init__(self, disp: tk.Tk):
-        self.parser = Parser()
+        self.parser    = Parser()
+        self.processor = Processor()
         self.create_widgets(disp)
         self.config_grid()
 
@@ -124,29 +127,64 @@ class GUI:
     def clk_BTN_01(self):
         val = self.ENT_00.get()
         if not self.check_path(val):
-            self.log("Input: path to \"*.json\"")
+            self.log("Input expected: path to JSON")
             return
         self.log(f"Loading: \"{val}\" ...")
         val = abspath(val)
         self.parser.set_fields(val)
-        self.log(self.parser.log)
+        self.log(self.parser.log_info)
         if self.parser.is_prepared:
             self.log("GUI.parser: prepared")
         else:
-            self.log("GUI.parser: not prepared.\n  Fix .json")
+            self.log("GUI.parser not prepared!\n Fix JSON")
 
     def clk_BTN_02(self):
-        threading.Thread(target=self.run_parser, daemon=True).start()
-    
-    def run_parser(self):
         if not self.parser.is_prepared:
-            self.log("GUI.parser: not prepared.\n  Fix: .json")
+            self.log("GUI.parser not prepared!\n Load JSON first")
             return
-        self.log("Parsing started ...")
+        self.BTN_02.config(state='disabled')
+        self.parser.log_info    = []
+        self.processor.log_info = []
+        threading.Thread(target=self.run_workflow).start()
+
+    def run_workflow(self):
+        self.log("=== Pipeline Started ===")
+        # 1. PARSING
+        self.log("1. Parsing started ...")
         time_0 = time.time()
-        all_tg_msgs =  asyncio.run(self.parser.parse())
-        time_d = time.time() - time_0
-        self.log(f"Parsing done by {time_d:.1f} seconds")
-        with open(str(self.parser.dir_path + "/data.csv"), 'w') as f:
-            for msg in all_tg_msgs:
-                f.write(msg + '\n')
+        raw_data = asyncio.run(self.parser.parse())
+        time_p = time.time() - time_0
+        self.log(self.parser.log_info)
+        self.log(f"   Parsing done: {len(raw_data)} msgs in {time_p:.1f}s")
+        # 2. PROCESSING
+        self.log("2. Processing started ...")
+        if not raw_data:
+            self.log("   No data to process.")
+            self.finish_workflow()
+            return
+        time_1 = time.time()
+        proc_data = self.processor.start_pool(raw_data)
+        time_pr = time.time() - time_1
+        self.log(self.processor.log_info)
+        self.log(f"   Processing done: {time_pr:.1f}s")
+        # 3. SAVING
+        self.log("3. Saving started ...")
+        rawdata_path = str(self.parser.dir_path + "/raw_data.csv")
+        try:
+            with open(rawdata_path, 'w', encoding='utf-8') as f:
+                for s in raw_data: f.write(s + '\n')
+            self.log(f"  Saved to: {rawdata_path}")
+        except Exception as e:
+            self.log(f"  Error saving {rawdata_path}: {e}")
+        procdata_path = str(self.parser.dir_path + "/proc_data.csv")
+        try:
+            with open(procdata_path, 'w', encoding='utf-8') as f:
+                for s in proc_data: f.write(s + '\n')
+            self.log(f"  Saved to: {procdata_path}")
+        except Exception as e:
+            self.log(f"  Error saving {procdata_path}: {e}")
+        self.finish_workflow()
+
+    def finish_workflow(self):
+        self.log("=== Pipeline Finished ===")
+        self.BTN_02.config(state='normal')
