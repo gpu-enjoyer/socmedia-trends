@@ -2,5 +2,7 @@
 pyrogram
 TgCrypto
 
+vkbottle
+
 nltk
 pymystem3

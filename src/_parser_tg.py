@@ -2,6 +2,7 @@
 import asyncio
 import json
 from   os.path import dirname
+
 from   pyrogram.client import Client
 from   pyrogram.types  import Chat
 
@@ -17,12 +18,12 @@ class ParserTg:
 
     def __init__(self):
         self.log_info = []
-        self.log_info.append("Parser.__init__()")
+        self.log_info.append("ParserTg.__init__()")
         self.is_prepared = False
 
     def set_fields(self, inp_path: str):
         self.log_info = []
-        self.log_info.append(f"Parser.set_fields(\"{inp_path}\")")
+        self.log_info.append(f"ParserTg.set_fields(\"{inp_path}\")")
         flag = True
         config = {}
         try:
@@ -67,7 +68,7 @@ class ParserTg:
             self.log_info.append(f"  'depth' not found")
         self.is_prepared = self.is_prepared or flag
 
-    async def parse_chat(self, client: Client, name: str):
+    async def parse_chat(self, client: Client, name: str) -> list[str]:
         chat_msgs = []
         try:
             chat = await client.get_chat(name)
